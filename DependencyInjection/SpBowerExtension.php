@@ -78,14 +78,14 @@ class SpBowerExtension extends Extension
 
         $loader->load('assetic.xml');
 
-        $resourceDefinition = $container->getDefinition('sp_bower.assetic.bower_resource');
+        $resourceDefinition = $container->getDefinition('sp_bower.formulae_builder');
         $resourceDefinition->addMethodCall('setJsFilters', array($config['assetic']['filters']['js']));
         $resourceDefinition->addMethodCall('setCssFilters', array($config['assetic']['filters']['css']));
         $resourceDefinition->addMethodCall('setNestDependencies', array($config['assetic']['nest_dependencies']['all']));
         unset($config['assetic']['nest_dependencies']['all']);
 
         $this->processPackageFilters($container, $config['assetic']['filters']['packages']);
-        $this->processPackageNestDependencies($container    , $config['assetic']['nest_dependencies']);
+        $this->processPackageNestDependencies($container , $config['assetic']['nest_dependencies']);
     }
 
     /**
@@ -129,7 +129,7 @@ class SpBowerExtension extends Extension
         $definition = new Definition('%sp_bower.assetic.package_resource.class%', array($packageName));
         $container->setDefinition($packageResourceId, $definition);
 
-        $resourceDefinition = $container->getDefinition('sp_bower.assetic.bower_resource');
+        $resourceDefinition = $container->getDefinition('sp_bower.formulae_builder');
         $resourceDefinition->addMethodCall('addPackageResource', array(new Reference($packageResourceId)));
 
         return $definition;

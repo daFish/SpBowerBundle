@@ -102,7 +102,7 @@ class SpBowerExtensionTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue($this->container->has('sp_bower.assetic.config_loader'));
         $this->assertTrue($this->container->has('sp_bower.assetic.bower_resource'));
 
-        $resourceDefinition = $this->container->getDefinition('sp_bower.assetic.bower_resource');
+        $resourceDefinition = $this->container->getDefinition('sp_bower.formulae_builder');
         $resourceMethodCalls = $resourceDefinition->getMethodCalls();
         $this->assertTrue($resourceMethodCalls[2][1][0]);
 
@@ -164,7 +164,7 @@ class SpBowerExtensionTest extends \PHPUnit_Framework_TestCase
 
         $this->extension->load($config, $this->container);
 
-        $resourceDefinition = $this->container->getDefinition('sp_bower.assetic.bower_resource');
+        $resourceDefinition = $this->container->getDefinition('sp_bower.formulae_builder');
         $resourceCalls = $resourceDefinition->getMethodCalls();
         $this->assertMethodCall($resourceCalls, 'setJsFilters', array($jsFilters));
         $this->assertMethodCall($resourceCalls, 'setCssFilters', array($cssFilters));
@@ -261,7 +261,7 @@ class SpBowerExtensionTest extends \PHPUnit_Framework_TestCase
 
         $this->extension->load($config, $this->container);
 
-        $resourceDefinition = $this->container->getDefinition('sp_bower.assetic.bower_resource');
+        $resourceDefinition = $this->container->getDefinition('sp_bower.formulae_builder');
         $methodCalls = $resourceDefinition->getMethodCalls();
         $this->assertMethodCall($methodCalls, 'setNestDependencies', false);
     }

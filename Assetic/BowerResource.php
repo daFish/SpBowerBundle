@@ -16,6 +16,7 @@ use Doctrine\Common\Collections\Collection;
 use Sp\BowerBundle\Bower\Bower;
 use Sp\BowerBundle\Bower\BowerManager;
 use Sp\BowerBundle\Bower\ConfigurationInterface;
+use Sp\BowerBundle\Bower\FormulaeBuilder;
 use Sp\BowerBundle\Bower\Exception\FileNotFoundException;
 use Sp\BowerBundle\Bower\Exception\RuntimeException;
 use Sp\BowerBundle\Bower\Package\Package;
@@ -43,19 +44,9 @@ class BowerResource extends ConfigurationResource implements \Serializable
     protected $namingStrategy;
 
     /**
-     * @var bool
+     * @var FormulaeBuilder
      */
-    protected $nestDependencies = true;
-
-    /**
-     * @var array
-     */
-    protected $cssFilters = array();
-
-    /**
-     * @var array
-     */
-    protected $jsFilters = array();
+    protected $formulaeBuilder;
 
     /**
      * @var Collection
@@ -63,15 +54,25 @@ class BowerResource extends ConfigurationResource implements \Serializable
     protected $packageResources;
 
     /**
-     * @param \Sp\BowerBundle\Bower\Bower                           $bower
-     * @param \Sp\BowerBundle\Bower\BowerManager                    $bowerManager
-     * @param \Sp\BowerBundle\Naming\PackageNamingStrategyInterface $namingStrategy
+     * Constructor
+     *
+     * @param Bower                          $bower
+     * @param BowerManager                   $bowerManager
+     * @param PackageNamingStrategyInterface $namingStrategy
+     * @param FormulaeBuilder                $formulaeBuilder
      */
-    public function __construct(Bower $bower, BowerManager $bowerManager, PackageNamingStrategyInterface $namingStrategy)
+    public function __construct(
+        Bower $bower,
+        BowerManager $bowerManager,
+        PackageNamingStrategyInterface $namingStrategy,
+        FormulaeBuilder $formulaeBuilder
+    )
     {
         $this->bower = $bower;
         $this->bowerManager = $bowerManager;
         $this->namingStrategy = $namingStrategy;
+        $this->formulaeBuilder = $formulaeBuilder;
+
         $this->packageResources = new ArrayCollection();
     }
 
@@ -94,43 +95,14 @@ class BowerResource extends ConfigurationResource implements \Serializable
             /** @var $package Package */
             foreach ($mapping as $package) {
                 $packageName = $this->namingStrategy->translateName($package->getName());
-                $formulae = array_merge($this->createPackageFormulae($package, $packageName, $config->getDirectory()), $formulae);
+                $formulae = array_merge(
+                    $this->formulaeBuilder->createPackageFormulae($package, $packageName, $config->getDirectory()),
+                    $formulae
+                );
             }
         }
 
         return $formulae;
-    }
-
-    /**
-     * @param array $cssFilter
-     */
-    public function setCssFilters(array $cssFilter)
-    {
-        $this->cssFilters = $cssFilter;
-    }
-
-    /**
-     * @return array
-     */
-    public function getCssFilters()
-    {
-        return $this->cssFilters;
-    }
-
-    /**
-     * @param array $jsFilter
-     */
-    public function setJsFilters(array $jsFilter)
-    {
-        $this->jsFilters = $jsFilter;
-    }
-
-    /**
-     * @return array
-     */
-    public function getJsFilters()
-    {
-        return $this->jsFilters;
     }
 
     /**
@@ -143,22 +115,6 @@ class BowerResource extends ConfigurationResource implements \Serializable
         $this->packageResources->set($packageResource->getName(), $packageResource);
 
         return $this;
-    }
-
-    /**
-     * @param boolean $nestDependencies
-     */
-    public function setNestDependencies($nestDependencies)
-    {
-        $this->nestDependencies = $nestDependencies;
-    }
-
-    /**
-     * @return boolean
-     */
-    public function shouldNestDependencies()
-    {
-        return $this->nestDependencies;
     }
 
     /**
@@ -221,35 +177,5 @@ class BowerResource extends ConfigurationResource implements \Serializable
         $formulae[$packageName . '_js'] = array($jsFiles, $this->resolveJsFilters($packageResource), array());
 
         return $formulae;
-    }
-
-    /**
-     * @param PackageResource|null $packageResource
-     *
-     * @return array
-     */
-    protected function resolveCssFilters(PackageResource $packageResource = null)
-    {
-        $cssFilters = $this->getCssFilters();
-        if (null !== $packageResource) {
-            $cssFilters = array_merge($cssFilters, $packageResource->getCssFilters()->toArray());
-        }
-
-        return $cssFilters;
-    }
-
-    /**
-     * @param PackageResource|null $packageResource
-     *
-     * @return array
-     */
-    protected function resolveJsFilters(PackageResource $packageResource = null)
-    {
-        $jsFilters = $this->getJsFilters();
-        if (null !== $packageResource) {
-            $jsFilters = array_merge($jsFilters, $packageResource->getJsFilters()->toArray());
-        }
-
-        return $jsFilters;
     }
 }

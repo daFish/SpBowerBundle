@@ -17,5 +17,28 @@ use Symfony\Component\Console\Input\InputInterface;
 
 class ListCommand extends ContainerAwareCommand
 {
+    /**
+     * {@inheritDoc}
+     */
+    protected function configure()
+    {
+        $this
+            ->setName('sp:bower:list')
+            ->setDescription('List all installed bower dependencies.')
+            ->setHelp(<<<EOT
+The <info>sp:bower:list</info> command lists all installed bower dependencies:
 
+  <info>php app/console sp:bower:list</info>
+EOT
+            );
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    protected function execute(InputInterface $input, OutputInterface $output)
+    {
+        /* @var $formulaeBuilder \Sp\BowerBundle\Bower\FormulaeBuilder */
+        $formulaeBuilder = $this->getContainer()->get('sp_bower.formulae_builder');
+    }
 } 

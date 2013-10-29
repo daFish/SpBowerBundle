@@ -13,6 +13,7 @@ namespace Sp\BowerBundle\Tests\Assetic;
 
 use Sp\BowerBundle\Assetic\PackageResource;
 use Sp\BowerBundle\Bower\Configuration;
+use Sp\BowerBundle\Bower\FormulaeBuilder;
 use Sp\BowerBundle\Assetic\BowerResource;
 use Sp\BowerBundle\Bower\Package\DependencyMapper;
 use Sp\BowerBundle\Bower\Package\Package;
@@ -32,20 +33,38 @@ class BowerResourceTest extends AbstractBowerTest
     protected $bowerResource;
 
     /**
-     * @var \PHPUnit_Framework_MockObject_MockObject
+     * @var \Sp\BowerBundle\Bower\Bower|\PHPUnit_Framework_MockObject_MockObject
      */
     protected $bower;
 
     /**
-     * @var \PHPUnit_Framework_MockObject_MockObject
+     * @var \Sp\BowerBundle\Bower\BowerManager|\PHPUnit_Framework_MockObject_MockObject
      */
     protected $bowerManager;
 
+    /**
+     * @var \Sp\BowerBundle\Bower\FormulaeBuilder
+     */
+    protected $formulaeBuilder;
+
     protected function setUp()
     {
-        $this->bower = $this->getMockBuilder('Sp\BowerBundle\Bower\Bower')->disableOriginalConstructor()->getMock();
-        $this->bowerManager = $this->getMockBuilder('Sp\BowerBundle\Bower\BowerManager')->disableOriginalConstructor()->getMock();
-        $this->bowerResource = new BowerResource($this->bower, $this->bowerManager, new PackageNamingStrategy());
+        $this->bower = $this->getMockBuilder('Sp\BowerBundle\Bower\Bower')
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $this->bowerManager = $this->getMockBuilder('Sp\BowerBundle\Bower\BowerManager')
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $this->formulaeBuilder = new FormulaeBuilder(new PackageNamingStrategy());
+
+        $this->bowerResource = new BowerResource(
+            $this->bower,
+            $this->bowerManager,
+            new PackageNamingStrategy(),
+            $this->formulaeBuilder
+        );
 
         $configDir = self::$fixturesDirectory ."/config";
         $config = new Configuration($configDir);
@@ -58,7 +77,10 @@ class BowerResourceTest extends AbstractBowerTest
         $mapping = $mapper->map($arrayDependencyMapping, $config);
 
         $this->bowerManager->expects($this->once())->method('getBundles')->will($this->returnValue($bundles));
-        $this->bower->expects($this->once())->method('getDependencyMapping')->with($this->equalTo($config))->will($this->returnValue($mapping));
+        $this->bower->expects($this->once())
+            ->method('getDependencyMapping')
+            ->with($this->equalTo($config))
+            ->will($this->returnValue($mapping));
     }
 
     /**
@@ -69,8 +91,8 @@ class BowerResourceTest extends AbstractBowerTest
         $jsFilters = array('some_js_filter');
         $cssFilters = array('some_css_filter');
 
-        $this->bowerResource->setCssFilters($cssFilters);
-        $this->bowerResource->setJsFilters($jsFilters);
+        $this->formulaeBuilder->setCssFilters($cssFilters);
+        $this->formulaeBuilder->setJsFilters($jsFilters);
         $formulae = $this->bowerResource->getContent();
 
         $this->assertArrayHasKey('other_package_css', $formulae);
@@ -118,17 +140,17 @@ class BowerResourceTest extends AbstractBowerTest
         $fooPackageJsFilter = 'other_package_js_filter';
         $packageCssFilter = 'package_css_filter';
 
-        $this->bowerResource->setCssFilters(array($cssFilter));
-        $this->bowerResource->setJsFilters(array($jsFilter));
+        $this->formulaeBuilder->setCssFilters(array($cssFilter));
+        $this->formulaeBuilder->setJsFilters(array($jsFilter));
 
         $otherPackageResource = new PackageResource('other_package');
         $otherPackageResource->setCssFilters(array($fooPackageCssFilter));
         $otherPackageResource->setJsFilters(array($fooPackageJsFilter));
-        $this->bowerResource->addPackageResource($otherPackageResource);
+        $this->formulaeBuilder->addPackageResource($otherPackageResource);
 
         $packageResource = new PackageResource('package');
         $packageResource->setCssFilters(array($packageCssFilter));
-        $this->bowerResource->addPackageResource($packageResource);
+        $this->formulaeBuilder->addPackageResource($packageResource);
 
         $formulae = $this->bowerResource->getContent();
 
