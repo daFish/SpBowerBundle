@@ -24,6 +24,7 @@
             <argument type="service" id="sp_bower.bower" />
             <argument type="service" id="sp_bower.bower_manager" />
             <argument type="service" id="sp_bower.package_naming_strategy" />
+            <argument type="service" id="sp_bower.formulae_builder" />
         </service>
 
         <service id="sp_bower.formulae_builder" class="%sp_bower.formulae_builder.class%">
